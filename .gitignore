@@ -1,0 +1,39 @@
+# Python Virtual Environments & Cache
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Flutter & Dart Build Outputs
+build/
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+*.metadata
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.user
+
+# Operating System Metadata
+Thumbs.db
+db.db
+Desktop.ini
+.DS_Store
+
+# Local Testing Scripts & Logs
+*.log
