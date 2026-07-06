@@ -79,20 +79,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Brand Logo/Header
-                    const Icon(
-                      Icons.directions_car_filled_outlined,
-                      size: 80,
-                      color: AppTheme.primaryColor,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'siir',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                      ),
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 120,
+                      fit: BoxFit.contain,
                     ),
                     const Text(
                       'La marketplace de location de voitures',
