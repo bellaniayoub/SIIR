@@ -5,6 +5,7 @@ class AuthRepository {
   final ApiClient _apiClient = ApiClient();
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
+    serverClientId: '572304347643-p7gjbvjnsvi60e0d2et92fer2kkgb1le.apps.googleusercontent.com',
   );
 
   Future<Map<String, dynamic>?> signInWithGoogle(String rolePreference) async {
