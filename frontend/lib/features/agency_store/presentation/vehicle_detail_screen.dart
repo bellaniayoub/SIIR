@@ -3,21 +3,31 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../data/agency_model.dart';
 
-class VehicleDetailScreen extends StatefulWidget {
+/// Shows the vehicle detail as a draggable modal bottom sheet.
+void showVehicleDetail(BuildContext context, Vehicle vehicle, AgencyStore agency) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => VehicleDetailSheet(vehicle: vehicle, agency: agency),
+  );
+}
+
+class VehicleDetailSheet extends StatefulWidget {
   final Vehicle vehicle;
   final AgencyStore agency;
 
-  const VehicleDetailScreen({
+  const VehicleDetailSheet({
     super.key,
     required this.vehicle,
     required this.agency,
   });
 
   @override
-  State<VehicleDetailScreen> createState() => _VehicleDetailScreenState();
+  State<VehicleDetailSheet> createState() => _VehicleDetailSheetState();
 }
 
-class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
+class _VehicleDetailSheetState extends State<VehicleDetailSheet> {
   int _currentPhotoIndex = 0;
   final PageController _pageController = PageController();
 
@@ -33,471 +43,369 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     final vehicle = widget.vehicle;
     final agency = widget.agency;
 
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // Photo Gallery with SliverAppBar
-          SliverAppBar(
-            expandedHeight: 280,
-            pinned: true,
-            backgroundColor: AppTheme.secondaryColor,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Photo PageView
-                  PageView.builder(
-                    controller: _pageController,
-                    itemCount: vehicle.photoEmojis.length,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentPhotoIndex = index;
-                      });
-                    },
-                    itemBuilder: (context, index) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AppTheme.secondaryColor,
-                              AppTheme.secondaryColor.withOpacity(0.85),
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                vehicle.photoEmojis[index],
-                                style: const TextStyle(fontSize: 80),
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    return DraggableScrollableSheet(
+      initialChildSize: 0.85,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Drag handle
+              Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 6),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              // Scrollable content
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.zero,
+                  children: [
+                    // Photo Gallery
+                    SizedBox(
+                      height: 220,
+                      child: Stack(
+                        children: [
+                          PageView.builder(
+                            controller: _pageController,
+                            itemCount: vehicle.photoEmojis.length,
+                            onPageChanged: (index) {
+                              setState(() {
+                                _currentPhotoIndex = index;
+                              });
+                            },
+                            itemBuilder: (context, index) {
+                              return Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 16),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.15),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppTheme.secondaryColor.withOpacity(0.9),
+                                      AppTheme.secondaryColor.withOpacity(0.7),
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        vehicle.photoEmojis[index],
+                                        style: const TextStyle(fontSize: 72),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          '${loc.translate('photo')} ${index + 1}/${vehicle.photoEmojis.length}',
+                                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+
+                          // Dot indicators
+                          Positioned(
+                            bottom: 10,
+                            left: 0,
+                            right: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(
+                                vehicle.photoEmojis.length,
+                                (index) => AnimatedContainer(
+                                  duration: const Duration(milliseconds: 250),
+                                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                                  width: _currentPhotoIndex == index ? 18 : 7,
+                                  height: 7,
+                                  decoration: BoxDecoration(
+                                    color: _currentPhotoIndex == index
+                                        ? AppTheme.primaryColor
+                                        : Colors.grey.shade400,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Vehicle Name, Category & Price
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      vehicle.name,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.textPrimaryColor,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${vehicle.year} • ${vehicle.category}',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: AppTheme.textSecondaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  '${loc.translate('photo')} ${index + 1}/${vehicle.photoEmojis.length}',
-                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                  '${vehicle.price} DH${loc.translate('per_day')}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // Bottom gradient overlay
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 60,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.transparent, Colors.black.withOpacity(0.4)],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
+                        ],
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
 
-                  // Photo Dot Indicators
-                  Positioned(
-                    bottom: 16,
-                    left: 0,
-                    right: 0,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        vehicle.photoEmojis.length,
-                        (index) => AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          width: _currentPhotoIndex == index ? 20 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: _currentPhotoIndex == index
-                                ? AppTheme.primaryColor
-                                : Colors.white.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(4),
+                    // Specs Row
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _specTag(Icons.local_gas_station, vehicle.fuel),
+                          _specTag(Icons.settings, vehicle.transmission),
+                          _specTag(Icons.event_seat, '${vehicle.seats} ${loc.translate('seats')}'),
+                          _specTag(Icons.sensor_door, '${vehicle.doors} ${loc.translate('doors')}'),
+                          if (vehicle.airConditioning)
+                            _specTag(Icons.ac_unit, loc.translate('ac_yes')),
+                          _specTag(Icons.speed, vehicle.mileagePolicy),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Divider
+                    Divider(height: 1, color: Colors.grey.shade200),
+                    const SizedBox(height: 16),
+
+                    // Agency Description
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            loc.translate('agency_description_title'),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.secondaryColor,
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Price badge
-                  Positioned(
-                    bottom: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primaryColor.withOpacity(0.4),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                          const SizedBox(height: 10),
+                          Text(
+                            vehicle.agencyDescription,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textPrimaryColor,
+                              height: 1.5,
+                            ),
                           ),
                         ],
                       ),
-                      child: Text(
-                        '${vehicle.price} DH${loc.translate('per_day')}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+                    const SizedBox(height: 20),
 
-          // Body Content
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Vehicle Name & Category
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    // Divider
+                    Divider(height: 1, color: Colors.grey.shade200),
+                    const SizedBox(height: 16),
+
+                    // Offered by Agency Card
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(
-                              vehicle.name,
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimaryColor,
-                              ),
+                          Text(
+                            loc.translate('offered_by'),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.secondaryColor,
                             ),
                           ),
+                          const SizedBox(height: 10),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppTheme.secondaryColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              vehicle.category,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.secondaryColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${vehicle.year} • ${vehicle.fuel} • ${vehicle.transmission}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Specs Grid
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        loc.translate('vehicle_specs'),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.secondaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          _buildSpecChip(Icons.event_seat, '${vehicle.seats} ${loc.translate('seats')}'),
-                          const SizedBox(width: 10),
-                          _buildSpecChip(Icons.sensor_door, '${vehicle.doors} ${loc.translate('doors')}'),
-                          const SizedBox(width: 10),
-                          _buildSpecChip(
-                            Icons.ac_unit,
-                            vehicle.airConditioning ? loc.translate('ac_yes') : loc.translate('ac_no'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          _buildSpecChip(Icons.local_gas_station, vehicle.fuel),
-                          const SizedBox(width: 10),
-                          _buildSpecChip(Icons.settings, vehicle.transmission),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.speed, size: 18, color: Colors.blue.shade700),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                vehicle.mileagePolicy,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.blue.shade700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Agency Description (Avito-style)
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        loc.translate('agency_description_title'),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.secondaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        vehicle.agencyDescription,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.textPrimaryColor,
-                          height: 1.6,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Agency Info Card (who is selling)
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        loc.translate('offered_by'),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.secondaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppTheme.secondaryColor.withOpacity(0.1),
+                              color: AppTheme.backgroundColor,
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade200),
                             ),
-                            child: Center(
-                              child: Text(agency.logoEmoji, style: const TextStyle(fontSize: 24)),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
                               children: [
-                                Row(
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        agency.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.secondaryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Center(
+                                    child: Text(agency.logoEmoji, style: const TextStyle(fontSize: 22)),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              agency.name,
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                            ),
+                                          ),
+                                          if (agency.isVerified) ...[
+                                            const SizedBox(width: 4),
+                                            const Icon(Icons.verified, color: Colors.blueAccent, size: 14),
+                                          ],
+                                        ],
                                       ),
-                                    ),
-                                    if (agency.isVerified) ...[
-                                      const SizedBox(width: 6),
-                                      const Icon(Icons.verified, color: Colors.blueAccent, size: 16),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.star, color: Colors.amber, size: 13),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            '${agency.rating} • 📍 ${agency.city}',
+                                            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondaryColor),
+                                          ),
+                                        ],
+                                      ),
                                     ],
-                                  ],
-                                ),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.star, color: Colors.amber, size: 14),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${agency.rating} (${agency.reviewCount} avis)',
-                                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  '📍 ${agency.city}',
-                                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                    const SizedBox(height: 20),
 
-                // Bottom spacing for the sticky bar
-                const SizedBox(height: 100),
-              ],
-            ),
-          ),
-        ],
-      ),
-
-      // Sticky Bottom Contact Bar
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Row(
-            children: [
-              // Price display
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${vehicle.price} DH${loc.translate('per_day')}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
+                    // Contact Buttons
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('WhatsApp: ${agency.whatsapp}')),
+                                );
+                              },
+                              icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                              label: Text(loc.translate('whatsapp')),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF25D366),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('${loc.translate('call')}: ${agency.phone}')),
+                                );
+                              },
+                              icon: const Icon(Icons.phone, size: 18),
+                              label: Text(loc.translate('call')),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      vehicle.mileagePolicy,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppTheme.textSecondaryColor,
-                      ),
-                    ),
+                    const SizedBox(height: 30),
                   ],
-                ),
-              ),
-              // WhatsApp Button
-              ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('WhatsApp: ${agency.whatsapp}')),
-                  );
-                },
-                icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                label: Text(loc.translate('whatsapp')),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF25D366),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Call Button
-              OutlinedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${loc.translate('call')}: ${agency.phone}')),
-                  );
-                },
-                icon: const Icon(Icons.phone, size: 18),
-                label: Text(loc.translate('call')),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildSpecChip(IconData icon, String label) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 20, color: AppTheme.secondaryColor),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+  Widget _specTag(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppTheme.secondaryColor),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }

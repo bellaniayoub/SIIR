@@ -167,15 +167,7 @@ class AgencyStoreDetailScreen extends StatelessWidget {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(16),
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VehicleDetailScreen(
-                                  vehicle: vehicle,
-                                  agency: agency,
-                                ),
-                              ),
-                            );
+                            showVehicleDetail(context, vehicle, agency);
                           },
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
