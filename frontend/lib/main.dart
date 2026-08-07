@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/localization/app_localizations.dart';
 import 'features/auth/presentation/login_screen.dart';
-import 'features/fleet_search/presentation/search_screen.dart';
-import 'features/chat/presentation/chat_screen.dart';
 import 'features/agency_store/presentation/agency_store_list_screen.dart';
 
 void main() {
@@ -123,85 +121,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
         onLanguageChanged: widget.onLanguageChanged,
       );
     }
-    return SIIRMainNavigation(
+
+    // Direct user to AgencyStoreListScreen as main home page
+    return AgencyStoreListScreen(
       sessionData: _sessionData!,
       currentLanguage: widget.currentLanguage,
       onLanguageChanged: widget.onLanguageChanged,
       onSignOut: _handleSignOut,
-    );
-  }
-}
-
-class SIIRMainNavigation extends StatefulWidget {
-  final Map<String, dynamic> sessionData;
-  final AppLanguage currentLanguage;
-  final ValueChanged<AppLanguage> onLanguageChanged;
-  final VoidCallback onSignOut;
-
-  const SIIRMainNavigation({
-    super.key,
-    required this.sessionData,
-    required this.currentLanguage,
-    required this.onLanguageChanged,
-    required this.onSignOut,
-  });
-
-  @override
-  State<SIIRMainNavigation> createState() => _SIIRMainNavigationState();
-}
-
-class _SIIRMainNavigationState extends State<SIIRMainNavigation> {
-  int _currentIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context);
-
-    final List<Widget> screens = [
-      SearchScreen(
-        sessionData: widget.sessionData,
-        currentLanguage: widget.currentLanguage,
-        onLanguageChanged: widget.onLanguageChanged,
-        onSignOut: widget.onSignOut,
-      ),
-      const AgencyStoreListScreen(),
-      ChatScreen(
-        sessionData: widget.sessionData,
-        currentLanguage: widget.currentLanguage,
-        onLanguageChanged: widget.onLanguageChanged,
-        onSignOut: widget.onSignOut,
-      ),
-    ];
-
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: AppTheme.textSecondaryColor,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.directions_car),
-            label: loc.translate('vehicles'),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.storefront),
-            label: loc.translate('agencies'),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.chat_bubble_outline),
-            label: loc.translate('chat'),
-          ),
-        ],
-      ),
     );
   }
 }

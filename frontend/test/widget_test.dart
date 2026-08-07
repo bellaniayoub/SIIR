@@ -11,7 +11,7 @@ void main() {
     );
 
     // Validate that the brand subtitle is rendered
-    expect(find.text('La marketplace de location de voitures'), findsOneWidget);
+    expect(find.text('La marketplace des agences de location au Maroc'), findsOneWidget);
 
     // Validate that the B2C Client and B2B Agency tabs are present
     expect(find.text('Client (B2C)'), findsOneWidget);

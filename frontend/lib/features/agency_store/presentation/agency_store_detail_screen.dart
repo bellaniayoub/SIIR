@@ -45,12 +45,15 @@ class AgencyStoreDetailScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        agency.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: Text(
+                          agency.name,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       if (agency.isVerified) ...[
@@ -62,6 +65,7 @@ class AgencyStoreDetailScreen extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     '📍 ${agency.address}',
+                    textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                   const SizedBox(height: 8),
@@ -85,7 +89,7 @@ class AgencyStoreDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Contact Actions (Direct Call, WhatsApp, Direct Chat)
+                  // Contact Actions (WhatsApp & Call)
                   Text(
                     loc.translate('contact_agency'),
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.secondaryColor),
@@ -97,13 +101,13 @@ class AgencyStoreDetailScreen extends StatelessWidget {
                         child: ElevatedButton.icon(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Ouverture WhatsApp: ${agency.whatsapp}')),
+                              SnackBar(content: Text('WhatsApp: ${agency.whatsapp}')),
                             );
                           },
                           icon: const Icon(Icons.chat_bubble_outline),
                           label: Text(loc.translate('whatsapp')),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF25D366), // WhatsApp green
+                            backgroundColor: const Color(0xFF25D366),
                           ),
                         ),
                       ),
@@ -112,7 +116,7 @@ class AgencyStoreDetailScreen extends StatelessWidget {
                         child: OutlinedButton.icon(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Appel téléphonique vers: ${agency.phone}')),
+                              SnackBar(content: Text('Appel: ${agency.phone}')),
                             );
                           },
                           icon: const Icon(Icons.phone),
@@ -124,9 +128,9 @@ class AgencyStoreDetailScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Agency Description
-                  const Text(
-                    'À propos de cette agence',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.secondaryColor),
+                  Text(
+                    loc.translate('about_agency'),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.secondaryColor),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -135,7 +139,7 @@ class AgencyStoreDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Fleet Showcase
+                  // Available Fleet Section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -144,7 +148,7 @@ class AgencyStoreDetailScreen extends StatelessWidget {
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.secondaryColor),
                       ),
                       Text(
-                        '${agency.fleet.length} ${loc.translate('vehicles')}',
+                        '${agency.fleet.length} ${loc.translate('vehicles_available')}',
                         style: const TextStyle(color: AppTheme.textSecondaryColor, fontSize: 12),
                       ),
                     ],
@@ -158,30 +162,63 @@ class AgencyStoreDetailScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final vehicle = agency.fleet[index];
                       return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                            child: Text(vehicle['image'], style: const TextStyle(fontSize: 24)),
-                          ),
-                          title: Text(
-                            vehicle['name'],
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text('${vehicle['category']} • ${vehicle['fuel']} • ${vehicle['transmission']}'),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
                             children: [
-                              Text(
-                                '${vehicle['price']} DH',
-                                style: const TextStyle(
-                                  color: AppTheme.primaryColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                              Container(
+                                width: 70,
+                                height: 70,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    vehicle['image'],
+                                    style: const TextStyle(fontSize: 32),
+                                  ),
                                 ),
                               ),
-                              Text(loc.translate('per_day'), style: const TextStyle(fontSize: 10, color: AppTheme.textSecondaryColor)),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      vehicle['name'],
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${vehicle['category']} • ${vehicle['fuel']} • ${vehicle['transmission']}',
+                                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      '${vehicle['price']} DH${loc.translate('per_day')}',
+                                      style: const TextStyle(
+                                        color: AppTheme.primaryColor,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('${loc.translate('reservation_requested')} ${vehicle['name']}')),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  minimumSize: const Size(60, 36),
+                                ),
+                                child: Text(loc.translate('book_now'), style: const TextStyle(fontSize: 12)),
+                              ),
                             ],
                           ),
                         ),

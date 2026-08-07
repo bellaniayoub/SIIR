@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../localization/app_localizations.dart';
-import '../../features/agency_store/presentation/agency_store_list_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   final Map<String, dynamic> sessionData;
@@ -75,23 +74,12 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
 
-          // Menu Items
+          // Menu Link: Agency Directory Marketplace Home
           ListTile(
-            leading: const Icon(Icons.directions_car, color: AppTheme.primaryColor),
-            title: Text(loc.translate('vehicles')),
+            leading: const Icon(Icons.storefront, color: AppTheme.primaryColor),
+            title: Text(loc.translate('agencies_home')),
             onTap: () {
               Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.storefront, color: AppTheme.secondaryColor),
-            title: Text(loc.translate('agencies')),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AgencyStoreListScreen()),
-              );
             },
           ),
           const Divider(),
