@@ -6,7 +6,7 @@ class ApiClient {
   // - Use 'http://127.0.0.1:8000/api/v1' for iOS Simulator / Web.
   // - Use 'http://10.0.2.2:8000/api/v1' for Android Emulator.
   // - Use 'http://<YOUR_COMPUTER_IP>:8000/api/v1' (e.g., 192.168.1.X) for physical devices.
-  static const String baseUrl = 'http://127.0.0.1:8000/api/v1';
+  static const String baseUrl = 'http://10.222.35.248:8000/api/v1';
 
   final http.Client _client = http.Client();
 

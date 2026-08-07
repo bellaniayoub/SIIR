@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../agency_store/data/agency_model.dart';
+import '../../agency_store/presentation/agency_store_detail_screen.dart';
+import '../../../core/widgets/app_drawer.dart';
 
 class SearchScreen extends StatefulWidget {
   final Map<String, dynamic> sessionData;
+  final AppLanguage currentLanguage;
+  final ValueChanged<AppLanguage> onLanguageChanged;
   final VoidCallback onSignOut;
 
   const SearchScreen({
     super.key,
     required this.sessionData,
+    required this.currentLanguage,
+    required this.onLanguageChanged,
     required this.onSignOut,
   });
 
@@ -24,19 +32,19 @@ class _SearchScreenState extends State<SearchScreen> {
   final List<String> _cities = ['Casablanca', 'Marrakech', 'Rabat', 'Tangier', 'Agadir', 'Fes'];
   final List<String> _categories = ['Tous', 'Citadine', 'Berline', 'SUV', '4x4 Premium'];
   final List<String> _fuels = ['Tous', 'Diesel', 'Essence', 'Hybride/Électrique'];
-  final List<String> _transms = ['Tous', 'Automatique', 'Manuelle'];
 
-  // Mock list of cars with Moroccan rental pricing
+  // Mock list of cars linked to verified agency store IDs
   final List<Map<String, dynamic>> _mockCars = [
     {
       'name': 'Dacia Logan',
       'category': 'Berline',
       'city': 'Casablanca',
-      'price': 250, // MAD/day
+      'price': 250,
       'fuel': 'Diesel',
       'transmission': 'Manuelle',
-      'agency': 'Yacout Car S.A.R.L.',
-      'rating': 4.7,
+      'agencyId': 'ag-001',
+      'agencyName': 'Yacout Car Casablanca',
+      'rating': 4.8,
       'image': '🚗',
     },
     {
@@ -46,8 +54,9 @@ class _SearchScreenState extends State<SearchScreen> {
       'price': 300,
       'fuel': 'Essence',
       'transmission': 'Manuelle',
-      'agency': 'Bahia RENT Marrakech',
-      'rating': 4.8,
+      'agencyId': 'ag-002',
+      'agencyName': 'Bahia RENT Marrakech',
+      'rating': 4.9,
       'image': '🚗',
     },
     {
@@ -57,7 +66,8 @@ class _SearchScreenState extends State<SearchScreen> {
       'price': 600,
       'fuel': 'Diesel',
       'transmission': 'Automatique',
-      'agency': 'Atlas Horizon Cars',
+      'agencyId': 'ag-003',
+      'agencyName': 'Atlas Horizon Rabat',
       'rating': 4.9,
       'image': '🚙',
     },
@@ -68,49 +78,36 @@ class _SearchScreenState extends State<SearchScreen> {
       'price': 1800,
       'fuel': 'Diesel',
       'transmission': 'Automatique',
-      'agency': 'Lux Voyage Tanger',
+      'agencyId': 'ag-004',
+      'agencyName': 'Lux Voyage Tanger',
       'rating': 5.0,
-      'image': 'SUV',
-    },
-    {
-      'name': 'Peugeot 208',
-      'category': 'Citadine',
-      'city': 'Agadir',
-      'price': 280,
-      'fuel': 'Diesel',
-      'transmission': 'Manuelle',
-      'agency': 'Souss Ocean Cars',
-      'rating': 4.6,
-      'image': '🚗',
+      'image': '🚙',
     },
   ];
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final user = widget.sessionData['user'] as Map<String, dynamic>?;
-    final userEmail = user?['email'] ?? 'Utilisateur SIIR';
     final userName = user?['name'] ?? 'Utilisateur';
     final role = widget.sessionData['role_assigned'] ?? 'Client';
 
-    // Apply filtering on mock data
     final filteredCars = _mockCars.where((car) {
       final matchCity = car['city'] == _selectedCity;
       final matchCategory = _selectedCategory == 'Tous' || car['category'] == _selectedCategory;
       final matchFuel = _selectedFuel == 'Tous' || car['fuel'] == _selectedFuel;
-      final matchTransm = _selectedTransmission == 'Tous' || car['transmission'] == _selectedTransmission;
-      return matchCity && matchCategory && matchFuel && matchTransm;
+      return matchCity && matchCategory && matchFuel;
     }).toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SIIR Marketplace'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: widget.onSignOut,
-            tooltip: 'Déconnexion',
-          ),
-        ],
+        title: Text(loc.translate('app_title')),
+      ),
+      drawer: AppDrawer(
+        sessionData: widget.sessionData,
+        currentLanguage: widget.currentLanguage,
+        onLanguageChanged: widget.onLanguageChanged,
+        onSignOut: widget.onSignOut,
       ),
       body: Column(
         children: [
@@ -135,11 +132,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Marhaban, $userName',
+                        userName,
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       Text(
-                        'Rôle connecté : $role ($userEmail)',
+                        '${loc.translate('role_connected')}: $role',
                         style: const TextStyle(color: AppTheme.textSecondaryColor, fontSize: 12),
                       ),
                     ],
@@ -157,14 +154,14 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Rechercher un véhicule au Maroc',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.secondaryColor),
+                    Text(
+                      loc.translate('search_title'),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.secondaryColor),
                     ),
                     const SizedBox(height: 16),
 
                     // City Selector Dropdown
-                    const Text('Ville de départ', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(loc.translate('pickup_city'), style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -194,7 +191,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Catégorie', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              Text(loc.translate('category'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                               const SizedBox(height: 6),
                               DropdownButtonFormField<String>(
                                 value: _selectedCategory,
@@ -210,7 +207,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Carburant', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              Text(loc.translate('fuel'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                               const SizedBox(height: 6),
                               DropdownButtonFormField<String>(
                                 value: _selectedFuel,
@@ -230,8 +227,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${filteredCars.length} véhicules trouvés à $_selectedCity',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          '${filteredCars.length} ${loc.translate('vehicles_found')} $_selectedCity',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                       ],
                     ),
@@ -245,9 +242,9 @@ class _SearchScreenState extends State<SearchScreen> {
                             children: [
                               Icon(Icons.directions_car_outlined, size: 64, color: Colors.grey.shade400),
                               const SizedBox(height: 12),
-                              const Text(
-                                'Aucun véhicule disponible avec ces filtres.',
-                                style: TextStyle(color: AppTheme.textSecondaryColor),
+                              Text(
+                                loc.translate('no_vehicles'),
+                                style: const TextStyle(color: AppTheme.textSecondaryColor),
                               ),
                             ],
                           ),
@@ -260,80 +257,111 @@ class _SearchScreenState extends State<SearchScreen> {
                         itemCount: filteredCars.length,
                         itemBuilder: (context, index) {
                           final car = filteredCars[index];
+                          final store = AgencyStore.mockStores.firstWhere(
+                            (s) => s.id == car['agencyId'],
+                            orElse: () => AgencyStore.mockStores.first,
+                          );
+
                           return Card(
                             margin: const EdgeInsets.only(bottom: 16),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
-                              child: Row(
+                              child: Column(
                                 children: [
-                                  // Mock car illustration
-                                  Container(
-                                    width: 70,
-                                    height: 70,
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.primaryColor.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        car['image'],
-                                        style: const TextStyle(fontSize: 32),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 70,
+                                        height: 70,
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.primaryColor.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            car['image'],
+                                            style: const TextStyle(fontSize: 32),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  // Detail specifications
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          car['name'],
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                        ),
-                                        Text(
-                                          'Géré par: ${car['agency']}',
-                                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            _buildBadge(car['fuel']),
-                                            const SizedBox(width: 4),
-                                            _buildBadge(car['transmission']),
+                                            Text(
+                                              car['name'],
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            // Clickable Agency Store Badge
+                                            InkWell(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => AgencyStoreDetailScreen(agency: store),
+                                                  ),
+                                                );
+                                              },
+                                              child: Row(
+                                                children: [
+                                                  const Icon(Icons.storefront, size: 14, color: AppTheme.secondaryColor),
+                                                  const SizedBox(width: 4),
+                                                  Expanded(
+                                                    child: Text(
+                                                      car['agencyName'],
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        color: AppTheme.secondaryColor,
+                                                        decoration: TextDecoration.underline,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                _buildBadge(car['fuel']),
+                                                const SizedBox(width: 4),
+                                                _buildBadge(car['transmission']),
+                                              ],
+                                            ),
                                           ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Pricing & Booking Action
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        '${car['price']} DH',
-                                        style: const TextStyle(
-                                          color: AppTheme.primaryColor,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                        ),
                                       ),
-                                      const Text('/ jour', style: TextStyle(fontSize: 11, color: AppTheme.textSecondaryColor)),
-                                      const SizedBox(height: 12),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Réservation demandée pour ${car['name']}')),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                          minimumSize: const Size(60, 36),
-                                        ),
-                                        child: const Text('Réserver', style: TextStyle(fontSize: 12)),
-                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            '${car['price']} DH',
+                                            style: const TextStyle(
+                                              color: AppTheme.primaryColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                            ),
+                                          ),
+                                          Text(loc.translate('per_day'), style: const TextStyle(fontSize: 11, color: AppTheme.textSecondaryColor)),
+                                          const SizedBox(height: 12),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('${loc.translate('reservation_requested')} ${car['name']}')),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                              minimumSize: const Size(60, 36),
+                                            ),
+                                            child: Text(loc.translate('book_now'), style: const TextStyle(fontSize: 12)),
+                                          ),
+                                        ],
+                                      )
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                             ),

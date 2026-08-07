@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/widgets/app_drawer.dart';
 
 class ChatScreen extends StatefulWidget {
   final Map<String, dynamic> sessionData;
+  final AppLanguage currentLanguage;
+  final ValueChanged<AppLanguage> onLanguageChanged;
+  final VoidCallback onSignOut;
 
-  const ChatScreen({super.key, required this.sessionData});
+  const ChatScreen({
+    super.key,
+    required this.sessionData,
+    required this.currentLanguage,
+    required this.onLanguageChanged,
+    required this.onSignOut,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -38,7 +49,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final role = widget.sessionData['role_assigned'] ?? 'Client';
 
-    // Mock translation logic based on the user's selected language
     String mockTranslation = '';
     if (role == 'Client') {
       mockTranslation = 'مرحباً، أود تأكيد الحجز من فضلك. (Traduit en Arabe)';
@@ -60,19 +70,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final role = widget.sessionData['role_assigned'] ?? 'Client';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Traducteur Intelligent'),
-            Text('Chat B2C Client / B2B Agence', style: TextStyle(fontSize: 11, fontWeight: FontWeight.normal)),
+            Text(loc.translate('smart_translator')),
+            Text('Chat B2C Client / B2B Agence', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.normal)),
           ],
         ),
         actions: [
-          // Select current active typing language
           DropdownButton<String>(
             value: _userLanguage,
             dropdownColor: Colors.white,
@@ -93,20 +103,26 @@ class _ChatScreenState extends State<ChatScreen> {
           const SizedBox(width: 8),
         ],
       ),
+      drawer: AppDrawer(
+        sessionData: widget.sessionData,
+        currentLanguage: widget.currentLanguage,
+        onLanguageChanged: widget.onLanguageChanged,
+        onSignOut: widget.onSignOut,
+      ),
       body: Column(
         children: [
           // Informational Alert Banner
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             color: AppTheme.primaryColor.withOpacity(0.1),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.info_outline, color: AppTheme.primaryColor, size: 20),
-                SizedBox(width: 12),
+                const Icon(Icons.info_outline, color: AppTheme.primaryColor, size: 20),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'SIIR traduit automatiquement les messages entre l\'agence et le client en temps réel.',
-                    style: TextStyle(fontSize: 12, color: AppTheme.secondaryColor, fontWeight: FontWeight.w600),
+                    loc.translate('chat_banner'),
+                    style: const TextStyle(fontSize: 12, color: AppTheme.secondaryColor, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -149,7 +165,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Message sender & label
                         Text(
                           '${msg['sender']} (${msg['language']})',
                           style: TextStyle(
@@ -159,8 +174,6 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-
-                        // Original message
                         Text(
                           msg['original'],
                           style: TextStyle(
@@ -170,8 +183,6 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ),
                         const Divider(color: Colors.white24, height: 12),
-
-                        // Automatic translation
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -189,7 +200,6 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 4),
                         Align(
                           alignment: Alignment.bottomRight,
@@ -218,7 +228,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: TextField(
                     controller: _messageController,
                     decoration: InputDecoration(
-                      hintText: 'Écrire en $_userLanguage...',
+                      hintText: loc.translate('type_message'),
                       filled: true,
                       fillColor: Colors.white,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

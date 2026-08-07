@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../data/auth_repository.dart';
 
 class LoginScreen extends StatefulWidget {
   final Function(Map<String, dynamic> sessionData) onAuthSuccess;
+  final AppLanguage currentLanguage;
+  final ValueChanged<AppLanguage> onLanguageChanged;
 
-  const LoginScreen({super.key, required this.onAuthSuccess});
+  const LoginScreen({
+    super.key,
+    required this.onAuthSuccess,
+    required this.currentLanguage,
+    required this.onLanguageChanged,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -13,7 +21,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final AuthRepository _authRepository = AuthRepository();
-  String _selectedRole = 'Client'; // 'Client' or 'Agency'
+  String _selectedRole = 'Client';
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -24,8 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // For testing when not running on a real device with complete Google Sign-In certificates:
-      // We will provide a fallback / mock authentication toggle in our UI.
       final result = await _authRepository.signInWithGoogle(_selectedRole);
       if (result != null) {
         widget.onAuthSuccess(result);
@@ -41,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Quick offline test mock to bypass real Google sign-in check on desktop/testing environment
   void _bypassSignInWithMockData() {
     widget.onAuthSuccess({
       'status': 'success',
@@ -58,10 +63,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+
     return Scaffold(
       body: Stack(
         children: [
-          // Background Gradient decoration
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -78,22 +84,44 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Language Switcher Top Bar
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        DropdownButton<AppLanguage>(
+                          value: widget.currentLanguage,
+                          dropdownColor: AppTheme.secondaryColor,
+                          icon: const Icon(Icons.language, color: Colors.white),
+                          underline: Container(),
+                          items: const [
+                            DropdownMenuItem(value: AppLanguage.fr, child: Text('Français', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: AppLanguage.en, child: Text('English', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: AppLanguage.ar, child: Text('العربية', style: TextStyle(color: Colors.white))),
+                          ],
+                          onChanged: (lang) {
+                            if (lang != null) widget.onLanguageChanged(lang);
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
                     // Brand Logo/Header
                     Image.asset(
                       'assets/images/logo.png',
                       height: 120,
                       fit: BoxFit.contain,
                     ),
-                    const Text(
-                      'La marketplace de location de voitures',
+                    Text(
+                      loc.translate('app_subtitle'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 40),
 
                     // Role selector container
                     Container(
@@ -105,10 +133,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Row(
                         children: [
                           Expanded(
-                            child: _buildRoleTab('Client', Icons.person),
+                            child: _buildRoleTab(loc.translate('client_b2c'), 'Client', Icons.person),
                           ),
                           Expanded(
-                            child: _buildRoleTab('Agency', Icons.storefront),
+                            child: _buildRoleTab(loc.translate('agency_b2b'), 'Agency', Icons.storefront),
                           ),
                         ],
                       ),
@@ -134,8 +162,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           Text(
                             _selectedRole == 'Client'
-                                ? 'Connectez-vous pour louer un véhicule'
-                                : 'Accédez à votre espace agence vérifiée',
+                                ? loc.translate('client_login_desc')
+                                : loc.translate('agency_login_desc'),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 16,
@@ -169,17 +197,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 12),
                             OutlinedButton(
                               onPressed: _bypassSignInWithMockData,
-                              child: const Text('Mock Local Developer Access'),
+                              child: Text(loc.translate('mock_dev_access')),
                             ),
                           ],
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
-                      'En vous connectant, vous acceptez nos CGU & Charte de Confidentialité.',
+                    Text(
+                      loc.translate('cgu_notice'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white54, fontSize: 11),
+                      style: const TextStyle(color: Colors.white54, fontSize: 11),
                     )
                   ],
                 ),
@@ -191,12 +219,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildRoleTab(String role, IconData icon) {
-    final isSelected = _selectedRole == role;
+  Widget _buildRoleTab(String displayTitle, String roleKey, IconData icon) {
+    final isSelected = _selectedRole == roleKey;
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedRole = role;
+          _selectedRole = roleKey;
           _errorMessage = null;
         });
       },
@@ -213,14 +241,18 @@ class _LoginScreenState extends State<LoginScreen> {
             Icon(
               icon,
               color: isSelected ? Colors.white : Colors.white70,
-              size: 20,
+              size: 18,
             ),
-            const SizedBox(width: 8),
-            Text(
-              role == 'Client' ? 'Client (B2C)' : 'Agence (B2B)',
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
-                fontWeight: FontWeight.bold,
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                displayTitle,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.white70,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
             ),
           ],
