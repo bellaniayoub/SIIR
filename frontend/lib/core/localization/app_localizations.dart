@@ -8,8 +8,10 @@ class AppLocalizations {
   AppLocalizations(this.language);
 
   static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations) ??
-        AppLocalizations(AppLanguage.fr);
+    final wrapper = context.dependOnInheritedWidgetOfExactType<AppLocalizationsProvider>();
+    if (wrapper != null) return wrapper.localizations;
+    // Fallback default
+    return AppLocalizations(AppLanguage.fr);
   }
 
   TextDirection get textDirection =>
@@ -56,6 +58,15 @@ class AppLocalizations {
       'about_agency': 'À propos de cette agence',
       'search_agency_hint': 'Rechercher une agence ou une ville...',
       'no_agencies_found': 'Aucune agence trouvée dans cette catégorie.',
+      'photo': 'Photo',
+      'photos': 'photos',
+      'vehicle_specs': 'Caractéristiques',
+      'seats': 'places',
+      'doors': 'portes',
+      'ac_yes': 'Climatisé',
+      'ac_no': 'Sans clim',
+      'agency_description_title': 'Description de l\'agence',
+      'offered_by': 'Proposé par',
     },
     AppLanguage.en: {
       'app_title': 'SIIR Marketplace',
@@ -86,6 +97,15 @@ class AppLocalizations {
       'about_agency': 'About this agency',
       'search_agency_hint': 'Search agency or city...',
       'no_agencies_found': 'No agencies found in this selection.',
+      'photo': 'Photo',
+      'photos': 'photos',
+      'vehicle_specs': 'Specifications',
+      'seats': 'seats',
+      'doors': 'doors',
+      'ac_yes': 'Air Con',
+      'ac_no': 'No AC',
+      'agency_description_title': 'Agency Description',
+      'offered_by': 'Offered by',
     },
     AppLanguage.ar: {
       'app_title': 'سير - SIIR',
@@ -116,10 +136,36 @@ class AppLocalizations {
       'about_agency': 'معلومات عن الوكالة',
       'search_agency_hint': 'البحث عن وكالة أو مدينة...',
       'no_agencies_found': 'لم يتم العثور على وكالات في هذا البحث.',
+      'photo': 'صورة',
+      'photos': 'صور',
+      'vehicle_specs': 'المواصفات',
+      'seats': 'مقاعد',
+      'doors': 'أبواب',
+      'ac_yes': 'مكيف',
+      'ac_no': 'بدون تكييف',
+      'agency_description_title': 'وصف الوكالة',
+      'offered_by': 'مقدم من',
     },
   };
 
   String translate(String key) {
     return _localizedValues[language]?[key] ?? _localizedValues[AppLanguage.fr]?[key] ?? key;
+  }
+}
+
+/// InheritedWidget that provides [AppLocalizations] down the widget tree.
+/// Used by [AppLocalizations.of(context)] to resolve the current language.
+class AppLocalizationsProvider extends InheritedWidget {
+  final AppLocalizations localizations;
+
+  const AppLocalizationsProvider({
+    super.key,
+    required this.localizations,
+    required super.child,
+  });
+
+  @override
+  bool updateShouldNotify(AppLocalizationsProvider oldWidget) {
+    return oldWidget.localizations.language != localizations.language;
   }
 }

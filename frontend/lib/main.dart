@@ -33,53 +33,22 @@ class _SIIRAppState extends State<SIIRApp> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations(_currentLanguage);
 
-    return Localizations(
-      locale: Locale(_currentLanguage.name),
-      delegates: const [
-        DefaultMaterialLocalizations.delegate,
-        DefaultWidgetsLocalizations.delegate,
-      ],
-      child: Directionality(
-        textDirection: localizations.textDirection,
-        child: MaterialApp(
-          title: 'SIIR Car Rental',
-          theme: AppTheme.lightTheme,
-          debugShowCheckedModeBanner: false,
-          builder: (context, child) {
-            return Localizations.override(
-              context: context,
-              child: child!,
-            );
-          },
-          home: AppLocalizationsWrapper(
-            localizations: localizations,
-            child: AuthWrapper(
-              currentLanguage: _currentLanguage,
-              onLanguageChanged: _changeLanguage,
-            ),
+    return Directionality(
+      textDirection: localizations.textDirection,
+      child: MaterialApp(
+        title: 'SIIR Car Rental',
+        theme: AppTheme.lightTheme,
+        debugShowCheckedModeBanner: false,
+        locale: Locale(_currentLanguage.name),
+        home: AppLocalizationsProvider(
+          localizations: localizations,
+          child: AuthWrapper(
+            currentLanguage: _currentLanguage,
+            onLanguageChanged: _changeLanguage,
           ),
         ),
       ),
     );
-  }
-}
-
-class AppLocalizationsWrapper extends InheritedWidget {
-  final AppLocalizations localizations;
-
-  const AppLocalizationsWrapper({
-    super.key,
-    required this.localizations,
-    required super.child,
-  });
-
-  static AppLocalizations of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<AppLocalizationsWrapper>()!.localizations;
-  }
-
-  @override
-  bool updateShouldNotify(AppLocalizationsWrapper oldWidget) {
-    return oldWidget.localizations.language != localizations.language;
   }
 }
 
@@ -122,7 +91,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
       );
     }
 
-    // Direct user to AgencyStoreListScreen as main home page
     return AgencyStoreListScreen(
       sessionData: _sessionData!,
       currentLanguage: widget.currentLanguage,

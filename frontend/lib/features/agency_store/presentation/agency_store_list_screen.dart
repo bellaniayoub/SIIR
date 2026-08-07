@@ -320,16 +320,16 @@ class _AgencyStoreListScreenState extends State<AgencyStoreListScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(vehicle['image'], style: const TextStyle(fontSize: 22)),
+                          Text(vehicle.thumbnailEmoji, style: const TextStyle(fontSize: 22)),
                           const SizedBox(height: 4),
                           Text(
-                            vehicle['name'],
+                            vehicle.name,
                             style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            '${vehicle['price']} DH${loc.translate('per_day')}',
+                            '${vehicle.price} DH${loc.translate('per_day')}',
                             style: const TextStyle(fontSize: 9, color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
                           ),
                         ],

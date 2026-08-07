@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../data/agency_model.dart';
+import 'vehicle_detail_screen.dart';
 
 class AgencyStoreDetailScreen extends StatelessWidget {
   final AgencyStore agency;
@@ -163,63 +164,77 @@ class AgencyStoreDetailScreen extends StatelessWidget {
                       final vehicle = agency.fleet[index];
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 70,
-                                height: 70,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VehicleDetailScreen(
+                                  vehicle: vehicle,
+                                  agency: agency,
                                 ),
-                                child: Center(
-                                  child: Text(
-                                    vehicle['image'],
-                                    style: const TextStyle(fontSize: 32),
+                              ),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 70,
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      vehicle.thumbnailEmoji,
+                                      style: const TextStyle(fontSize: 32),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      vehicle['name'],
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${vehicle['category']} • ${vehicle['fuel']} • ${vehicle['transmission']}',
-                                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      '${vehicle['price']} DH${loc.translate('per_day')}',
-                                      style: const TextStyle(
-                                        color: AppTheme.primaryColor,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        vehicle.name,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${vehicle.category} • ${vehicle.fuel} • ${vehicle.transmission}',
+                                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.photo_library_outlined, size: 14, color: Colors.grey.shade500),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${vehicle.photoEmojis.length} ${loc.translate('photos')}',
+                                            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${vehicle.price} DH${loc.translate('per_day')}',
+                                        style: const TextStyle(
+                                          color: AppTheme.primaryColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('${loc.translate('reservation_requested')} ${vehicle['name']}')),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                  minimumSize: const Size(60, 36),
-                                ),
-                                child: Text(loc.translate('book_now'), style: const TextStyle(fontSize: 12)),
-                              ),
-                            ],
+                                const Icon(Icons.chevron_right, color: AppTheme.textSecondaryColor),
+                              ],
+                            ),
                           ),
                         ),
                       );
