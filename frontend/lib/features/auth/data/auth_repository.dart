@@ -10,7 +10,12 @@ class AuthRepository {
 
   Future<Map<String, dynamic>?> signInWithGoogle(String rolePreference) async {
     try {
-      // Trigger local Google sign-in flow
+      // Disconnect previous session to force Google Account Picker popup every time
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+
+      // Trigger Google account picker dialog
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         return null; // User cancelled

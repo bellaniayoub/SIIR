@@ -1,6 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.endpoints import auth
+from app.db.database import engine, Base
+from app.db import models
+
+# Initialize database tables
+try:
+    Base.metadata.create_all(bind=engine)
+    print("[Database] Models & Tables initialized successfully.")
+except Exception as e:
+    print(f"[Database Error] Table initialization error: {e}")
 
 app = FastAPI(
     title="SIIR - Intelligent Car Rental Marketplace API",
